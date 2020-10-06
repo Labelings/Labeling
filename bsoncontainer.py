@@ -1,8 +1,8 @@
+import json
 from typing import Tuple, Callable, T
 
 import bson
 import numpy as np
-import json
 from tifffile import imread
 
 
@@ -11,7 +11,7 @@ class BsonContainer:
     numSets = 0
     indexImg = ""
     labelMapping = {}
-    labelSets = {
+    label_sets = {
 
     }
 
@@ -20,16 +20,16 @@ class BsonContainer:
         self.numSets = 0
         self.indexImg = ""
         self.labelMapping = {}
-        self.labelSets = {}
+        self.label_sets = {}
 
     @classmethod
     def fromValues(cls, version: int = 1, numsets: int = 0, indeximg: str = "", labelmapping: dict = {},
-                   labelSets: dict = {}):
+                   label_sets: dict = {}):
         obj = BsonContainer()
         obj.numSets = numsets
         obj.indexImg = indeximg
         obj.labelMapping = labelmapping
-        obj.labelSets = labelSets
+        obj.label_sets = label_sets
         obj.version = version
         return obj
 
@@ -40,7 +40,7 @@ class BsonContainer:
         obj.numSets = data["numSets"]
         obj.indexImg = data["indexImg"]
         obj.labelMapping = data["labelMapping"]
-        obj.labelSets = data["labelSets"]
+        obj.label_sets = data["labelSets"]
         return obj
 
     def encode(self, path: str):
@@ -49,7 +49,7 @@ class BsonContainer:
             f.write(data)
 
     def encodewithfunc(self, path: str, func: Callable[[T], int]):
-        for labelset in self.labelSets.values():
+        for labelset in self.label_sets.values():
             i = 0
             for label in labelset:
                 t = func(label)
@@ -61,7 +61,7 @@ class BsonContainer:
         with open(path, 'wb+') as f:
             f.write(data)
 
-    def save_as_json(self, path:str):
+    def save_as_json(self, path: str):
         with open(path, 'w') as outfile:
             json.dump(vars(self), outfile)
 
@@ -80,11 +80,10 @@ class Labeling:
     labels = BsonContainer.fromValues()
     img = None
 
-    def __init__(self, dim: Tuple, x: int = None, y: int = None):
-        obj = Labeling()
+    def __init__(self, dim: Tuple = None, x: int = None, y: int = None):
         if x and y is not None:
-            obj.img = np.zeros((x, y))
+            self.img = np.zeros((x, y))
         if dim is not None:
-            obj.img = np.zeros(dim)
-
-        return obj
+            self.img = np.zeros(dim)
+        else:
+            self.img = np.zeros((1, 1))

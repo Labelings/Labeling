@@ -79,6 +79,7 @@ class MetaSegmentMerger:
                             for key, value in self.label_sets.items():
                                 if self.result_image[it.index] in value:
                                     self.label_sets[key].add(self.label_value)
+                            self.label_sets[list(self.label_sets.keys())[-1]].add(self.label_value)
                             self.result_image[it.index] = self.label_value
                             self.label_value += 1
                         else:
@@ -100,6 +101,7 @@ class MetaSegmentMerger:
                         for key, value in self.label_sets.items():
                             if temp[x + it.multi_index[0], y + it.multi_index[1]] in value:
                                 self.label_sets[key].add(self.label_value)
+                        self.label_sets[list(self.label_sets.keys())[-1]].add(self.label_value)
                         temp[x + it.multi_index[0], y + it.multi_index[1]] = self.label_value
                         self.label_value += 1
                     else:
@@ -119,11 +121,12 @@ class MetaSegmentMerger:
             convertedlabelSets[str(i)] = list(y)
             i += 1
 
-        labeling = bc.Labeling((self.image_resolution[0], self.image_resolution[1]))
-        labeling.img = img
+        labeling = bc.Labeling()
+        labeling.img = np.reshape(self.result_image, (self.image_resolution[0], self.image_resolution[1]))
         labeling.labels.label_sets = convertedlabelSets
         labeling.labels.numSets = len(self.label_sets)
         labeling.labels.indexImg = path + '.tif'
         labeling.labels.encode(path + '.bson')
-        #optional, just to easily content check
+        # optional, just to easily content check
         labeling.labels.save_as_json(path + '.json')
+        return labeling
