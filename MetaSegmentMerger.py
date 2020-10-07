@@ -111,22 +111,38 @@ class MetaSegmentMerger:
 
     def save_result(self, path: str):
         self.cleanup_labelsets()
-        img = Image.fromarray(np.reshape(self.result_image, (self.image_resolution[0], self.image_resolution[1])))
+        img = Image.fromarray(np.reshape(self.result_image, self.image_resolution))
         img.save(path + '.tif', 'tiff')
 
         # convert labelSets to lists to save
-        convertedlabelSets = {}
+        convertedlabelsets = {}
         i = 0
         for x, y in self.label_sets.items():
-            convertedlabelSets[str(i)] = list(y)
+            convertedlabelsets[str(i)] = list(y)
             i += 1
 
-        labeling = bc.Labeling()
-        labeling.img = np.reshape(self.result_image, (self.image_resolution[0], self.image_resolution[1]))
-        labeling.labels.label_sets = convertedlabelSets
+        labeling = bc.Labeling(dim=self.image_resolution)
+        labeling.img = np.reshape(self.result_image, self.image_resolution)
+        labeling.labels.labelSets = convertedlabelsets
         labeling.labels.numSets = len(self.label_sets)
         labeling.labels.indexImg = path + '.tif'
-        labeling.labels.encode(path + '.bson')
+        labeling.labels.encode_and_save(path + '.bson')
         # optional, just to easily content check
         labeling.labels.save_as_json(path + '.json')
         return labeling
+
+    def get_result(self):
+        self.cleanup_labelsets()
+        convertedlabelsets = {}
+        i = 0
+        for x, y in self.label_sets.items():
+            convertedlabelsets[str(i)] = list(y)
+            i += 1
+        labeling = bc.Labeling(dim=self.image_resolution)
+        labeling.img = np.reshape(self.result_image, self.image_resolution)
+        labeling.labels.labelSets = convertedlabelsets
+        labeling.labels.numSets = len(self.label_sets)
+        labeling.labels.indexImg = 'placeholder.tif'
+        return labeling
+
+

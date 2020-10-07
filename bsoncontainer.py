@@ -11,7 +11,7 @@ class BsonContainer:
     numSets = 0
     indexImg = ""
     labelMapping = {}
-    label_sets = {
+    labelSets = {
 
     }
 
@@ -20,7 +20,7 @@ class BsonContainer:
         self.numSets = 0
         self.indexImg = ""
         self.labelMapping = {}
-        self.label_sets = {}
+        self.labelSets = {}
 
     @classmethod
     def fromValues(cls, version: int = 1, numsets: int = 0, indeximg: str = "", labelmapping: dict = {},
@@ -29,7 +29,7 @@ class BsonContainer:
         obj.numSets = numsets
         obj.indexImg = indeximg
         obj.labelMapping = labelmapping
-        obj.label_sets = label_sets
+        obj.labelSets = label_sets
         obj.version = version
         return obj
 
@@ -40,20 +40,22 @@ class BsonContainer:
         obj.numSets = data["numSets"]
         obj.indexImg = data["indexImg"]
         obj.labelMapping = data["labelMapping"]
-        obj.label_sets = data["labelSets"]
+        obj.labelSets = data["labelSets"]
         return obj
 
-    def encode(self, path: str):
+    def encode(self):
+        return bson.encode(vars(self))
+
+    def encode_and_save(self, path: str):
         data = bson.encode(vars(self))
         with open(path, 'wb+') as f:
             f.write(data)
 
     def encodewithfunc(self, path: str, func: Callable[[T], int]):
-        for labelset in self.label_sets.values():
+        for labelset in self.labelSets.values():
             i = 0
             for label in labelset:
                 t = func(label)
-                self.labelMapping[str(t)] = label
                 labelset[i] = t
                 i += 1
 
@@ -72,6 +74,19 @@ class BsonContainer:
             return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
                                             data["labelSets"])
 
+    @staticmethod
+    def decode_withfunc(path, func: Callable[[int], T]):
+        with open(path, 'rb') as f:
+            data = bson.decode(f.read())
+            transformed_labelsets = {}
+            for key, labelset in data['labelSets'].items():
+                transformed_labelsets[key] = set()
+                for label in labelset:
+                    transformed_labelsets[key].add(func(label))
+
+            return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
+                                            transformed_labelsets)
+
     def get_image(self):
         return imread(self.indexImg)
 
@@ -87,3 +102,15 @@ class Labeling:
             self.img = np.zeros(dim)
         else:
             self.img = np.zeros((1, 1))
+
+    @classmethod
+    def from_file(cls, path: str):
+        cls.labels = BsonContainer.decode(path)
+        cls.img = cls.labels.get_image()
+        return cls
+
+    @classmethod
+    def from_file_withfunc(cls, path: str, func: Callable[[int], T]):
+        cls.labels = BsonContainer.decode_withfunc(path, func)
+        cls.img = cls.labels.get_image()
+        return cls
