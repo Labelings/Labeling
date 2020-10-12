@@ -89,28 +89,3 @@ class BsonContainer:
 
     def get_image(self):
         return imread(self.indexImg)
-
-
-class Labeling:
-    labels = BsonContainer.fromValues()
-    img = None
-
-    def __init__(self, dim: Tuple = None, x: int = None, y: int = None):
-        if x and y is not None:
-            self.img = np.zeros((x, y))
-        if dim is not None:
-            self.img = np.zeros(dim)
-        else:
-            self.img = np.zeros((1, 1))
-
-    @classmethod
-    def from_file(cls, path: str):
-        cls.labels = BsonContainer.decode(path)
-        cls.img = cls.labels.get_image()
-        return cls
-
-    @classmethod
-    def from_file_withfunc(cls, path: str, func: Callable[[int], T]):
-        cls.labels = BsonContainer.decode_withfunc(path, func)
-        cls.img = cls.labels.get_image()
-        return cls
