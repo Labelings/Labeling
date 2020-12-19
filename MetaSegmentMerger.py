@@ -115,8 +115,10 @@ class MetaSegmentMerger:
         convertedlabelsets = {}
         i = 0
         for x, y in self.label_sets.items():
-            convertedlabelsets[str(i)] = list(y)
-            i += 1
+            vals = sorted(list(y))
+            if vals not in convertedlabelsets.values():
+                convertedlabelsets[str(i)] = vals
+                i += 1
 
         labeling = bc.Labeling(dim=self.image_resolution)
         labeling.img = np.reshape(self.result_image, self.image_resolution)
@@ -133,8 +135,10 @@ class MetaSegmentMerger:
         convertedlabelsets = {}
         i = 0
         for x, y in self.label_sets.items():
-            convertedlabelsets[str(i)] = list(y)
-            i += 1
+            vals = sorted(list(y))
+            if vals not in convertedlabelsets.values():
+                convertedlabelsets[str(i)] = vals
+                i += 1
         labeling = bc.Labeling(dim=self.image_resolution)
         labeling.img = np.reshape(self.result_image, self.image_resolution)
         labeling.labels.labelSets = convertedlabelsets

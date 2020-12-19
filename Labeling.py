@@ -1,6 +1,7 @@
 from typing import List, Callable, T, Tuple
 
 import numpy as np
+import os
 from PIL import Image
 from tifffile import imread
 
@@ -133,7 +134,7 @@ class Labeling:
             convertedlabelsets[str(i)] = list(y)
             i += 1
 
-        bsonCon = bc.BsonContainer.fromValues(1, len(self.label_sets), 'placeholder.tif', {}, convertedlabelsets)
+        bsonCon = bc.BsonContainer.fromValues(1, len(self.label_sets), os.path.splitext(path)[0]+'.tif', {}, convertedlabelsets)
         bsonCon.encode_and_save(path + '.bson')
         # optional, just to easily content check
         bsonCon.save_as_json(path + '.json')

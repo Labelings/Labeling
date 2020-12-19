@@ -116,9 +116,9 @@ def test4():
     d = a.copy()
     example1_images.append(d.transpose())
     # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
-    merger = lb.Labeling.fromValues(first_image=example1_images[0])
-    patch_size = (4, 2)
-    for image in example1_images[1:]:
+    merger = lb.Labeling.fromValues(first_image=np.zeros((4,4), dtype="int32"))
+    patch_size = (2, 4)
+    for image in example1_images:
         # start position
         x, y = 0, 0
         # create 2x2 patches from each image
