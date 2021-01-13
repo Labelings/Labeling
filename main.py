@@ -32,11 +32,11 @@ def test1():
     profiler = LineProfiler()
     start = datetime.now()
     # initialize the merger
-    merger = lb.Labeling.fromValues(first_image=images[0])
+    merger = lb.Labeling.fromValues()
     # profiler.add_function(lb.Labeling.add_segments)
     # profiler.add_function(lb.Labeling.iterate_over_images)
     # iterate over all images
-    for image in images[1:]:
+    for image in images:
         # start position
         x, y = 0, 0
         # create 64x64 patches from each image
@@ -78,9 +78,9 @@ def test2():
     d[:2] = 4
     example1_images.append(d.transpose())
     # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
-    merger = lb.Labeling.fromValues(first_image=example1_images[0])
+    merger = lb.Labeling.fromValues(first_image=np.zeros((4, 4), np.int32))
     patch_size = (4, 2)
-    for image in example1_images[1:]:
+    for image in example1_images:
         # start position
         x, y = 0, 0
         # create 2x2 patches from each image
@@ -118,6 +118,7 @@ def test4():
     # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
     merger = lb.Labeling.fromValues(first_image=np.zeros((4,4), dtype="int32"))
     patch_size = (2, 4)
+    i = 0
     for image in example1_images:
         # start position
         x, y = 0, 0
@@ -127,13 +128,14 @@ def test4():
         for patchList in patches:
             for patch in patchList:
                 # add a patch at the defined spot
-                result = merger.add_segments(patch, (x, y))
+                result = merger.add_segments(patch, (x, y), source_id=str(i))
                 print(result)
                 y += patch_size[1]
             y = 0
 
             x += patch_size[0]
         patch_size = (patch_size[1], patch_size[0])
+        i += 1
     img, labeling = merger.save_result("example1")
     print(img)
     print(vars(labeling))
@@ -149,11 +151,12 @@ def test3():
     # profiler = LineProfiler()
     start = datetime.now()
     # initialize the merger
-    merger = lb.Labeling.fromValues(first_image=images[0])
+    merger = lb.Labeling.fromValues(first_image=np.zeros(images[0].shape, np.int32))
     # profiler.add_function(lb.Labeling.add_segments)
     # profiler.add_function(lb.Labeling.iterate_over_images)
     # iterate over all images
-    for image in images[1:]:
+    i = 0
+    for image in images:
         # start position
         x, y = 0, 0
         # create 64x64 patches from each image
@@ -163,17 +166,29 @@ def test3():
             for patch in patchList:
                 # print(x,y)
                 # profiler.runcall(merger.add_segments, patch, (x,y))
-                merger.add_segments(patch=patch, position=(x, y))
+                merger.add_segments(patch=patch, position=(x, y), source_id=str(i))
                 y += patch_size
             y = 0
             x += patch_size
-    # merger.save_result("iterate_segments1")
+        i +=1
+    img, labeling = merger.save_result("big_img")
     print(datetime.now() - start)
+    print(vars(labeling))
+
+    temp ={}
+    for key,value in labeling.labelSets.items():
+        if value["source"] not in temp:
+            temp[value["source"]] = 1
+        else:
+            temp[value["source"]] += 1
+    print(temp)
+    print([a/len(labeling.labelSets) for a in temp.values()])
+    print(sum([a / len(labeling.labelSets) for a in temp.values()]))
     # profiler.print_stats()
     # profiler.dump_stats("profiling.lprof")
 
 
 if __name__ == '__main__':
 
-    test2()
-    test4()
+    test3()
+    #test4()

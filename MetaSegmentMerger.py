@@ -13,6 +13,7 @@ class MetaSegmentMerger:
     label_sets = {"0": set()}
     list_of_unique_ids = []
     unique_map_id_id_label = {}
+    segmentation_source = {}
 
     def __init__(self):
         self.result_image = None
@@ -21,6 +22,7 @@ class MetaSegmentMerger:
         self.label_sets = {"0": set()}
         self.list_of_unique_ids = []
         self.unique_map_id_id_label = {}
+        self.segmentation_source = {}
 
     @staticmethod
     def read_images(file_paths: list):
@@ -59,9 +61,9 @@ class MetaSegmentMerger:
         for setname, labelset in self.label_sets.items():
             self.label_sets[setname] = set([x for x in labelset if x in t])
 
-    def iterate_over_images(self, images: List[np.ndarray]):
+    def iterate_over_images(self, images: List[np.ndarray], source_ids=None):
         # iterate over all images
-        for image in images:
+        for image, id in images, source_ids:
             with np.nditer(image, flags=["c_index"], op_flags=["readonly"]) as it:
                 for val in it:
                     if val.item() != 0:
@@ -78,12 +80,20 @@ class MetaSegmentMerger:
                                     self.label_sets[key].add(self.label_value)
                             self.label_sets[list(self.label_sets.keys())[-1]].add(self.label_value)
                             self.result_image[it.index] = self.label_value
+                            if self.label_value not in self.segmentation_source.keys():
+                                self.segmentation_source[str(id)] = []
+                            self.segmentation_source[str(id)].add(self.label_value)
                             self.label_value += 1
                         else:
                             label = self.unique_map_id_id_label[(self.result_image[it.index], val.item())]
                             self.result_image[it.index] = label
+                            if self.label_value not in self.segmentation_source.keys():
+                                self.segmentation_source[str(id)] = []
+                            self.segmentation_source[str(id)].add(self.label_value)
 
-    def add_segments(self, patch: np.ndarray, x: int, y: int):
+
+
+    def add_segments(self, patch: np.ndarray, x: int, y: int, source_id=None):
         temp = np.reshape(self.result_image, self.image_resolution)
         with np.nditer(patch, flags=["multi_index"], op_flags=["readonly"]) as it:
             for val in it:
@@ -92,7 +102,8 @@ class MetaSegmentMerger:
                         self.list_of_unique_ids.append(val.item())
                         self.label_sets[str(self.label_value)] = set()
                         self.label_sets[str(self.label_value)].add(self.label_value)
-                    if (temp[x + it.multi_index[0], y + it.multi_index[1]], val.item()) not in self.unique_map_id_id_label.keys():
+                    if (temp[x + it.multi_index[0], y + it.multi_index[1]],
+                        val.item()) not in self.unique_map_id_id_label.keys():
                         self.unique_map_id_id_label[
                             (temp[x + it.multi_index[0], y + it.multi_index[1]], val.item())] = self.label_value
                         for key, value in self.label_sets.items():
@@ -100,10 +111,17 @@ class MetaSegmentMerger:
                                 self.label_sets[key].add(self.label_value)
                         self.label_sets[list(self.label_sets.keys())[-1]].add(self.label_value)
                         temp[x + it.multi_index[0], y + it.multi_index[1]] = self.label_value
+                        if self.label_value not in self.segmentation_source.keys():
+                            self.segmentation_source[str(source_id)] = []
+                        self.segmentation_source[str(source_id)].add(self.label_value)
                         self.label_value += 1
                     else:
-                        label = self.unique_map_id_id_label[(temp[x + it.multi_index[0], y + it.multi_index[1]], val.item())]
+                        label = self.unique_map_id_id_label[
+                            (temp[x + it.multi_index[0], y + it.multi_index[1]], val.item())]
                         temp[x + it.multi_index[0], y + it.multi_index[1]] = label
+                        if self.label_value not in self.segmentation_source.keys():
+                            self.segmentation_source[str(source_id)] = []
+                        self.segmentation_source[str(source_id)].add(self.label_value)
         self.result_image = temp.flatten()
 
     def save_result(self, path: str):
@@ -145,5 +163,3 @@ class MetaSegmentMerger:
         labeling.labels.numSets = len(self.label_sets)
         labeling.labels.indexImg = 'placeholder.tif'
         return labeling
-
-

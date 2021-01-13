@@ -7,13 +7,12 @@ from tifffile import imread
 
 
 class BsonContainer:
-    version = 1
+    version = 2
     numSets = 0
     indexImg = ""
     labelMapping = {}
-    labelSets = {
-
-    }
+    labelSets = {}
+    segmentationSource = {}
 
     def __init__(self):
         self.version = 1
@@ -24,13 +23,14 @@ class BsonContainer:
 
     @classmethod
     def fromValues(cls, version: int = 1, numsets: int = 0, indeximg: str = "", labelmapping: dict = {},
-                   label_sets: dict = {}):
+                   label_sets: dict = {}, segmentation_source: dict = {}):
         obj = BsonContainer()
         obj.numSets = numsets
         obj.indexImg = indeximg
         obj.labelMapping = labelmapping
         obj.labelSets = label_sets
         obj.version = version
+        obj.segmentationSource = segmentation_source
         return obj
 
     @classmethod
@@ -41,6 +41,7 @@ class BsonContainer:
         obj.indexImg = data["indexImg"]
         obj.labelMapping = data["labelMapping"]
         obj.labelSets = data["labelSets"]
+        obj.segmentationSource = data["segmentationSource"]
         return obj
 
     def encode(self):
@@ -72,7 +73,7 @@ class BsonContainer:
         with open(path, 'rb') as f:
             data = bson.decode(f.read())
             return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
-                                            data["labelSets"])
+                                            data["labelSets"], data["segmentation_source"])
 
     @staticmethod
     def decode_withfunc(path, func: Callable[[int], T]):
@@ -85,7 +86,7 @@ class BsonContainer:
                     transformed_labelsets[key].add(func(label))
 
             return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
-                                            transformed_labelsets)
+                                            transformed_labelsets, data["segmentation_source"])
 
     def get_image(self):
         return imread(self.indexImg)
