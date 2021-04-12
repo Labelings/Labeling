@@ -6,6 +6,7 @@
 from datetime import datetime
 
 import numpy as np
+from scipy.ndimage import rotate
 from tifffile import imread
 
 import Labeling as lb
@@ -26,81 +27,31 @@ def read_img():
 
 
 def test1():
-    # init
-    images = read_img()
-    patch_size = 64
-    profiler = LineProfiler()
-    start = datetime.now()
-    # initialize the merger
-    merger = lb.Labeling.fromValues()
-    # profiler.add_function(lb.Labeling.add_segments)
-    # profiler.add_function(lb.Labeling.iterate_over_images)
-    # iterate over all images
-    for image in images:
-        # start position
-        x, y = 0, 0
-        # create 64x64 patches from each image
-        patches = np.vsplit(image, int(image.shape[0] / patch_size))
-        patches = [np.hsplit(seg, int(image.shape[1] / patch_size)) for seg in patches]
-        for patchList in patches:
-            for patch in patchList:
-                # print(x,y)
-                profiler.runcall(merger.add_segments, patch, (x,y))
-                #merger.add_segments(patch=patch, position=(x, y))
-                y += patch_size
-            y = 0
-            x += patch_size
-    #merger.save_result("iterate_segments1")
-    profiler.print_stats()
-    profiler.dump_stats("profiling.lprof")
-    # print(datetime.now() - start)
-    # start = datetime.now()
-    # merger2 = lb.Labeling.fromValues(first_image=images[0])
-    # merger2.iterate_over_images(images[1:])
-    # merger2.save_result("iterate_images1")
-    # print(datetime.now() - start)
+    # setting up the images for second example
+    example2_images = []
+    example2_images.append(np.invert(imread("tutorial/up_big.tif")))
+    example2_images[0][example2_images[0] > 0] = 130
+    example2_images.append(
+        rotate(np.transpose(np.flip(example2_images[0]).copy()), angle=45, reshape=False, mode="constant", cval=0))
+    example2_images[1][example2_images[1] > 0] = 131
+    example2_images.append(np.transpose(np.flip(example2_images[0]).copy()))
+    example2_images[2][example2_images[2] > 0] = 132
+    example2_images.append(rotate(np.flip(example2_images[0]).copy(), angle=45, reshape=False, mode="constant", cval=0))
+    example2_images[3][example2_images[3] > 0] = 133
+    example2_images.append(np.flip(example2_images[0]).copy())
+    example2_images[4][example2_images[4] > 0] = 134
+    example2_images.append(
+        rotate(np.transpose(example2_images[0]).copy(), angle=45, reshape=False, mode="constant", cval=0))
+    example2_images[5][example2_images[5] > 0] = 135
+    example2_images.append(np.transpose(example2_images[0]).copy())
+    example2_images[6][example2_images[6] > 0] = 136
+    example2_images.append(rotate(example2_images[0], angle=45, reshape=False, mode="constant", cval=0))
+    example2_images[7][example2_images[7] > 0] = 137
 
+    merger = lb.Labeling.fromValues(np.zeros((512, 512), np.int32))
+    merger.iterate_over_images(example2_images, [str(int) for int in list(range(1, len(example2_images) + 1))])
+    img, labeling2 = merger.save_result("example2")
 
-
-def test2():
-    global result, img
-    a = np.zeros((4, 4), np.int32)
-    a[:2] = 1
-    example1_images = []
-    example1_images.append(a)
-    b = a.copy()
-    b[:2] = 2
-    example1_images.append(np.flip(b.transpose()))
-    c = a.copy()
-    c[:2] = 3
-    example1_images.append(np.flip(c))
-    d = a.copy()
-    d[:2] = 4
-    example1_images.append(d.transpose())
-    # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
-    merger = lb.Labeling.fromValues(first_image=np.zeros((4, 4), np.int32))
-    patch_size = (4, 2)
-    for image in example1_images:
-        # start position
-        x, y = 0, 0
-        # create 2x2 patches from each image
-        patches = np.vsplit(image, int(image.shape[0] / patch_size[0]))
-        patches = [np.hsplit(seg, int(image.shape[1] / patch_size[1])) for seg in patches]
-        for patchList in patches:
-            for patch in patchList:
-                # add a patch at the defined spot
-                result = merger.add_segments(patch, (x, y))
-                print(result)
-                y += patch_size[1]
-            y = 0
-
-            x += patch_size[0]
-        patch_size = (patch_size[1], patch_size[0])
-    img, labeling = merger.save_result("example1")
-    print(img)
-    print(vars(labeling))
-    # add_anything(data, (x,y,z):Tuple, merge:dict=None)
-    # returns dict of actual labels dif
 
 
 def test4():
@@ -109,39 +60,33 @@ def test4():
     a[:2] = 1
     example1_images = []
     example1_images.append(a)
+    #example1_images.append(a.copy())
     b = a.copy()
     example1_images.append(np.flip(b.transpose()))
     c = a.copy()
     example1_images.append(np.flip(c))
     d = a.copy()
     example1_images.append(d.transpose())
+    e = np.zeros((4, 4), np.int32)
+    e[1:3, 1:3] = 1
+    example1_images.append(e)
     # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
     merger = lb.Labeling.fromValues(first_image=np.zeros((4,4), dtype="int32"))
-    patch_size = (2, 4)
-    i = 0
-    for image in example1_images:
-        # start position
-        x, y = 0, 0
-        # create 2x2 patches from each image
-        patches = np.vsplit(image, int(image.shape[0] / patch_size[0]))
-        patches = [np.hsplit(seg, int(image.shape[1] / patch_size[1])) for seg in patches]
-        for patchList in patches:
-            for patch in patchList:
-                # add a patch at the defined spot
-                result = merger.add_segments(patch, (x, y), source_id=str(i))
-                print(result)
-                y += patch_size[1]
-            y = 0
+    merger2 = lb.Labeling.fromValues(first_image=np.zeros((4, 4), dtype="int32"))
+    result = merger2.add_segments(example1_images[0], (0, 0), source_id=str(0))
+    result = merger2.add_segments(example1_images[1], (0, 0), source_id=str(1))
+    result = merger2.add_segments(example1_images[2], (0, 0), source_id=str(2))
+    result = merger2.add_segments(example1_images[3], (0, 0), source_id=str(3))
+    result = merger2.add_segments(example1_images[4], (0, 0), source_id=str(4))
 
-            x += patch_size[0]
-        patch_size = (patch_size[1], patch_size[0])
-        i += 1
-    img, labeling = merger.save_result("example1")
+    merger.iterate_over_images(example1_images,['a','b','c','d','e'])
+
+    img, labeling = merger.save_result("example1_1", True)
+    img, labeling = merger2.save_result("example1", True)
     print(img)
     print(vars(labeling))
     # add_anything(data, (x,y,z):Tuple, merge:dict=None)
     # returns dict of actual labels dif
-
 
 
 def test3():
@@ -171,7 +116,7 @@ def test3():
             y = 0
             x += patch_size
         i +=1
-    img, labeling = merger.save_result("big_img")
+    img, labeling = merger.save_result("big_img", True)
     print(datetime.now() - start)
     print(vars(labeling))
 
@@ -190,5 +135,6 @@ def test3():
 
 if __name__ == '__main__':
 
-    test3()
+    test1()
+    #test3()
     #test4()

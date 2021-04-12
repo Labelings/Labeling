@@ -9,23 +9,26 @@ from tifffile import imread
 class BsonContainer:
     version = 2
     numSets = 0
+    numSources = 0
     indexImg = ""
     labelMapping = {}
     labelSets = {}
-    segmentationSource = {}
 
     def __init__(self):
         self.version = 1
         self.numSets = 0
+        self.numSources = 0
         self.indexImg = ""
         self.labelMapping = {}
         self.labelSets = {}
+        self.segmentationSource = None
 
     @classmethod
-    def fromValues(cls, version: int = 1, numsets: int = 0, indeximg: str = "", labelmapping: dict = {},
-                   label_sets: dict = {}, segmentation_source: dict = {}):
+    def fromValues(cls, version: int = 1, numsets: int = 0, numSources:int = 0, indeximg: str = "", labelmapping: dict = {},
+                   label_sets: dict = {}, segmentation_source: dict() = None):
         obj = BsonContainer()
         obj.numSets = numsets
+        obj.numSources = numSources
         obj.indexImg = indeximg
         obj.labelMapping = labelmapping
         obj.labelSets = label_sets
@@ -38,10 +41,11 @@ class BsonContainer:
         obj = BsonContainer()
         obj.version = data["version"]
         obj.numSets = data["numSets"]
+        obj.numSources = data["numSources"]
         obj.indexImg = data["indexImg"]
         obj.labelMapping = data["labelMapping"]
         obj.labelSets = data["labelSets"]
-        obj.segmentationSource = data["segmentationSource"]
+        obj.segmentationSource = data["segmentation_source"]
         return obj
 
     def encode(self):
@@ -72,8 +76,8 @@ class BsonContainer:
     def decode(path: str):
         with open(path, 'rb') as f:
             data = bson.decode(f.read())
-            return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
-                                            data["labelSets"], data["segmentation_source"])
+            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
+                                            data["labelSets"], data["segmentationSource"])
 
     @staticmethod
     def decode_withfunc(path, func: Callable[[int], T]):
@@ -85,8 +89,8 @@ class BsonContainer:
                 for label in labelset:
                     transformed_labelsets[key].add(func(label))
 
-            return BsonContainer.fromValues(data["version"], data["numSets"], data["indexImg"], data["labelMapping"],
-                                            transformed_labelsets, data["segmentation_source"])
+            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
+                                            transformed_labelsets, data["segmentationSource"])
 
     def get_image(self):
         return imread(self.indexImg)
