@@ -6,16 +6,10 @@ import numpy as np
 from tifffile import imread
 
 
-class BsonContainer:
-    version = 2
-    numSets = 0
-    numSources = 0
-    indexImg = ""
-    labelMapping = {}
-    labelSets = {}
+class BsonContainer(dict):
 
     def __init__(self):
-        self.version = 1
+        self.version = 2
         self.numSets = 0
         self.numSources = 0
         self.indexImg = ""
