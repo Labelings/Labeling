@@ -34,6 +34,7 @@ class Labeling:
         self.list_of_unique_ids = []
         self.unique_map_id_id_label = {}
         self.segmentation_source = {}
+        self.metadata = None
 
     @classmethod
     def from_file(cls, path: str):
@@ -103,6 +104,9 @@ class Labeling:
 
         self.result_image = temp.flatten()
         return segment_mapping
+
+    def add_metadata(self, data):
+        self.metadata = data
 
     def add_segmentation_source(self, source_id, label_value):
         if source_id is not None:
