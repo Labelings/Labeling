@@ -1,12 +1,10 @@
-import profile
-import time
 from datetime import datetime
 import numpy as np
 from scipy.ndimage import rotate
 from tifffile import imread
 
-import Labeling as lb
-from line_profiler import LineProfiler
+from labeling import Labeling as lb
+#from line_profiler import LineProfiler
 
 result = np.zeros((512, 512))
 resolution = (512, 512)
@@ -47,8 +45,16 @@ def test1():
 
     merger = lb.Labeling.fromValues(np.zeros((512, 512), np.int32))
     merger.iterate_over_images(example2_images, [str(int) for int in list(range(1, len(example2_images) + 1))])
+    meta = {
+        "date": "2021-06-28",
+        "revision": 1,
+        "author": "Tom Burke"
+    }
+    #merger.add_metadata(meta)
+    print(merger.metadata)
     img, labeling2 = merger.save_result("example2")
-
+    print(merger.metadata)
+    print(labeling2.metadata)
 
 
 def test4():
@@ -116,16 +122,16 @@ def test3():
 
 
 if __name__ == '__main__':
-    profiler = LineProfiler()
-    profiler.add_function(lb.Labeling.add_segments)
-    profiler.add_function(lb.Labeling.iterate_over_images)
-    profiler.add_function(lb.Labeling.save_result)
-    profiler.add_function(lb.Labeling.add_image)
+    #profiler = LineProfiler()
+    #profiler.add_function(lb.Labeling.add_segments)
+    #profiler.add_function(lb.Labeling.iterate_over_images)
+    #profiler.add_function(lb.Labeling.save_result)
+    #profiler.add_function(lb.Labeling.add_image)
     #test1()
     #profiler.runcall(test1)
 
-    test3()
-    profiler.runcall(test3)
+    test1()
+    #profiler.runcall(test3)
     #test4()
-    profiler.print_stats()
-    profiler.dump_stats("profiling.lprof")
+    #profiler.print_stats()
+    #profiler.dump_stats("profiling.lprof")

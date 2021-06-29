@@ -14,7 +14,6 @@ class BsonContainer(dict):
         self.indexImg = ""
         self.labelMapping = {}
         self.labelSets = {}
-        self.metadata = None
 
     @classmethod
     def fromValues(cls, version: int = 1, numsets: int = 0, numSources:int = 0, indeximg: str = "", labelmapping: dict = {},
@@ -26,7 +25,8 @@ class BsonContainer(dict):
         obj.labelMapping = labelmapping
         obj.labelSets = label_sets
         obj.version = version
-        obj.metadata = metadata
+        if metadata is not None:
+            obj.metadata = metadata
         return obj
 
     @classmethod
@@ -69,8 +69,11 @@ class BsonContainer(dict):
     def decode(path: str):
         with open(path, 'rb') as f:
             data = bson.decode(f.read())
-            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
-                                            data["labelSets"], data["metadata"])
+            if "metadata" not in data.keys():
+                return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
+                                                data["labelSets"])
+            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
+                                            data["labelMapping"], data["labelSets"], data["metadata"])
 
     @staticmethod
     def decode_withfunc(path, func: Callable[[int], T]):
@@ -82,8 +85,11 @@ class BsonContainer(dict):
                 for label in labelset:
                     transformed_labelsets[key].add(func(label))
 
-            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
-                                            transformed_labelsets, data["metadata"])
+            if "metadata" not in data.keys():
+                return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
+                                                data["labelMapping"], data["labelSets"])
+            return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
+                                            data["labelMapping"], data["labelSets"], data["metadata"])
 
     def get_image(self):
         return imread(self.indexImg)

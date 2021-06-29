@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tifffile import imread
 
-import bsoncontainer as bc
+import labeling.bsoncontainer as bc
 
 
 class LabelSet:
@@ -57,7 +57,8 @@ class Labeling:
         labeling = Labeling()
         labeling.list_of_unique_ids = np.unique(first_image)
         labeling.image_resolution = first_image.shape
-        labeling.result_image = first_image.copy().flatten()
+        labeling.result_image = np.zeros(first_image.shape, first_image.dtype)
+        labeling.add_image(first_image,source_id)
         return labeling
 
     def iterate_over_images(self, images: List[np.ndarray], source_ids=None):
@@ -119,9 +120,9 @@ class Labeling:
             self.cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.image_resolution))
         img.save(path + '.tif', 'tiff')
-        bson_con = bc.BsonContainer.fromValues(1, len(self.label_sets), len(self.segmentation_source),
+        bson_con = bc.BsonContainer.fromValues(2, len(self.label_sets), len(self.segmentation_source),
                                                os.path.splitext(os.path.basename(path))[0] + '.tif', {},
-                                               self.label_sets, self.segmentation_source)
+                                               self.label_sets, self.metadata)
         bson_con.encode_and_save(path + '.bson')
         # optional, just to easily content check
         if save_json:
@@ -137,7 +138,7 @@ class Labeling:
                                            len(self.segmentation_source),
                                            'placeholder.tif', {},
                                            self.label_sets,
-                                           self.segmentation_source)
+                                           self.metadata)
 
     def cleanup_labelsets(self):
         # cleanup labelSets
