@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Callable, T
 
 import bson
@@ -14,15 +15,16 @@ class BsonContainer(dict):
         self.indexImg = ""
         self.labelMapping = {}
         self.labelSets = {}
+        self.metadata ={}
 
     @classmethod
-    def fromValues(cls, version: int = 1, numsets: int = 0, numSources:int = 0, indeximg: str = "", labelmapping: dict = {},
+    def fromValues(cls, version: int = 2, num_sets: int = 0, num_sources:int = 0, index_img: str = "", label_mapping: dict = {},
                    label_sets: dict = {}, metadata: dict() = None):
         obj = BsonContainer()
-        obj.numSets = numsets
-        obj.numSources = numSources
-        obj.indexImg = indeximg
-        obj.labelMapping = labelmapping
+        obj.numSets = num_sets
+        obj.numSources = num_sources
+        obj.indexImg = index_img
+        obj.labelMapping = label_mapping
         obj.labelSets = label_sets
         obj.version = version
         if metadata is not None:
@@ -69,6 +71,7 @@ class BsonContainer(dict):
     def decode(path: str):
         with open(path, 'rb') as f:
             data = bson.decode(f.read())
+            data["indexImg"] = os.path.join(os.path.dirname(os.path.realpath(f.name)), data["indexImg"])
             if "metadata" not in data.keys():
                 return BsonContainer.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"], data["labelMapping"],
                                                 data["labelSets"])

@@ -35,18 +35,26 @@ class Labeling:
         self.unique_map_id_id_label = {}
         self.segmentation_source = {}
         self.metadata = None
+        self.img_filename = None
 
     @classmethod
     def from_file(cls, path: str):
-        cls.labels = bc.BsonContainer.decode(path)
-        cls.img = cls.labels.get_image()
-        return cls
+        labeling = cls.__new__(cls)
+        container = bc.BsonContainer.decode(path)
+        labeling.result_image = container.get_image()
+        labeling.image_resolution = labeling.result_image.shape
+        labeling.label_sets = container.labelSets
+        labeling.metadata = container.metadata
+        labeling.img_filename = os.path.split(path)[1].replace(".bson", ".tif")
+        labeling.segmentation_source = dict.fromkeys(range(container.numSources), range(container.numSources))
+        return labeling
 
-    @classmethod
-    def from_file_withfunc(cls, path: str, func: Callable[[int], T]):
-        cls.labels = bc.BsonContainer.decode_withfunc(path, func)
-        cls.img = cls.labels.get_image()
-        return cls
+    # @classmethod
+    # def from_file_withfunc(cls, path: str, func: Callable[[int], T]):
+    #     cls.labels = bc.BsonContainer.decode_withfunc(path, func)
+    #     cls.result_image = cls.labels.get_image()
+    #     cls.img = cls.labels.get_image()
+    #     return cls
 
     @staticmethod
     def read_images(file_paths: list):
@@ -120,6 +128,7 @@ class Labeling:
             self.cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.image_resolution))
         img.save(path + '.tif', 'tiff')
+        self.img_filename = os.path.splitext(os.path.basename(path))[0] + '.tif'
         bson_con = bc.BsonContainer.fromValues(2, len(self.label_sets), len(self.segmentation_source),
                                                os.path.splitext(os.path.basename(path))[0] + '.tif', {},
                                                self.label_sets, self.metadata)
@@ -133,10 +142,10 @@ class Labeling:
         if cleanup:
             self.cleanup_labelsets()
         return np.reshape(self.result_image, self.image_resolution), \
-               bc.BsonContainer.fromValues(1,
+               bc.BsonContainer.fromValues(2,
                                            len(self.label_sets),
                                            len(self.segmentation_source),
-                                           'placeholder.tif', {},
+                                           self.img_filename, {},
                                            self.label_sets,
                                            self.metadata)
 
