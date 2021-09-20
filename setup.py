@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="labeling",
-    version="0.1.4",
+    version="0.1.5",
     author="Tom Burke",
     author_email="burke@mpi-cbg.de",
     description="A package to create labeling/segmentation information based on pixel values.",
