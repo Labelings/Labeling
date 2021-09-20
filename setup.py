@@ -25,4 +25,10 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
+    install_requires=[
+        "pymongo==3.11.0",
+        "tifffile==2021.4.8",
+        "pillow==8.2.0",
+        "numpy==1.20.3"
+    ],
 )
