@@ -45,7 +45,7 @@ class Labeling:
         labeling.image_resolution = labeling.result_image.shape
         labeling.label_sets = container.labelSets
         labeling.metadata = container.metadata
-        labeling.img_filename = os.path.split(path)[1].replace(".bson", ".tif")
+        labeling.img_filename = os.path.split(path)[1].replace(".labeling.bson", ".tif")
         labeling.segmentation_source = dict.fromkeys(range(container.numSources), range(container.numSources))
         return labeling
 
@@ -127,15 +127,16 @@ class Labeling:
         if cleanup:
             self.cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.image_resolution))
-        img.save(path + '.tif', 'tiff')
-        self.img_filename = os.path.splitext(os.path.basename(path))[0] + '.tif'
+        path, filename = os.path.split(path)
+        img.save(os.path.join(path, filename+'.tif'), 'tiff')
+        self.img_filename = filename + '.tif'
         bson_con = bc.BsonContainer.fromValues(2, len(self.label_sets), len(self.segmentation_source),
-                                               os.path.splitext(os.path.basename(path))[0] + '.tif', {},
+                                               self.img_filename, {},
                                                self.label_sets, self.metadata)
-        bson_con.encode_and_save(path + '.bson')
+        bson_con.encode_and_save(os.path.join(path, filename+'.labeling.bson'))
         # optional, just to easily content check
         if save_json:
-            bson_con.save_as_json(path + '.json')
+            bson_con.save_as_json(os.path.join(path, filename+'.json'))
         return np.reshape(self.result_image, self.image_resolution), bson_con
 
     def get_result(self, cleanup: bool = True):
@@ -167,3 +168,23 @@ class Labeling:
         for key, value in self.segmentation_source.items():
             self.segmentation_source[key] = list(value)
         self.label_sets = new_label_sets
+
+    def segment_fragment_mapping(self):
+        segment_to_fragment = {}
+        for key, value in self.label_sets.items():
+            for v in value:
+                if v not in segment_to_fragment:
+                    segment_to_fragment[v] = set()
+                segment_to_fragment[v].add(int(key))
+        return segment_to_fragment
+
+    def remove_segment(self, segment_number:int):
+        pass
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+
+
+            return self.__dict__ == other.__dict__
+        else:
+            return False
