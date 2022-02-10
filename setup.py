@@ -29,6 +29,6 @@ setuptools.setup(
         "pymongo==3.11.0",
         "tifffile==2021.4.8",
         "pillow==9.0.0",
-        "numpy==1.20.3"
+        "numpy==1.21.0"
     ],
 )
