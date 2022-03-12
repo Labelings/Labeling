@@ -28,7 +28,7 @@ setuptools.setup(
     install_requires=[
         "pymongo==3.11.0",
         "tifffile==2021.4.8",
-        "pillow==9.0.0",
+        "pillow==9.0.1",
         "numpy==1.20.3"
     ],
 )
