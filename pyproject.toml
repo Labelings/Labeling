@@ -2,9 +2,9 @@
 requires = [
     "setuptools>=42",
     "wheel",
-    "pymongo==3.11.0",
+    "pymongo>=3.11.0",
     "tifffile==2021.4.8",
-    "pillow==8.2.0",
+    "pillow>=8.2.0",
     "numpy==1.20.3"
 ]
 build-backend = "setuptools.build_meta"
