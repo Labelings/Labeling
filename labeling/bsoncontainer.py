@@ -11,11 +11,11 @@ class BsonContainer(dict):
     def __init__(self):
         self.version = 2
         self.numSets = 0
+        self.numSources = 0
         self.indexImg = ""
         self.labelMapping = {}
         self.labelSets = {}
         self.metadata = {}
-        self.numSources = 0
 
     @classmethod
     def fromValues(cls, version: int = 2, num_sets: int = 0, num_sources: int = 0, index_img: str = "",

@@ -134,7 +134,7 @@ class Labeling:
         self.__img_filename = filename + '.tif'
         bson_con = bc.BsonContainer.fromValues(2, len(self.label_sets), len(self.__segmentation_source),
                                                self.__img_filename, {},
-                                               self.label_sets, self.metadata)
+                                               {key:list(value) for (key,value) in self.label_sets.items()}, self.metadata)
         bson_con.encode_and_save(os.path.join(path, filename + '.labeling.bson'))
         # optional, just to easily content check
         if save_json:
@@ -149,7 +149,7 @@ class Labeling:
                                            len(self.label_sets),
                                            len(self.__segmentation_source),
                                            self.__img_filename, {},
-                                           self.label_sets,
+                                           {key:list(value) for (key,value) in self.label_sets.items()},
                                            self.metadata)
 
     def __cleanup_labelsets(self) -> None:
