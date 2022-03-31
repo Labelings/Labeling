@@ -121,6 +121,7 @@ def test3():
     #print(vars(labeling))
 
 
+
 if __name__ == '__main__':
     #profiler = LineProfiler()
     #profiler.add_function(lb.Labeling.add_segments)

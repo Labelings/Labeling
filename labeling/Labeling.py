@@ -155,19 +155,24 @@ class Labeling:
     def __cleanup_labelsets(self) -> None:
         # cleanup labelSets
         _, idx = np.unique(self.result_image, return_index=True)
-        t = self.result_image[np.sort(idx)]
+        t = list(self.result_image[np.sort(idx)])
         if 0 not in t:
-            t = [0] + t
+            t.insert(0,0)
         relabels = range(len(t) + 1)
+
         temp = np.zeros(self.result_image.shape, np.int8)
         for a, b in zip(t, relabels):
             temp[self.result_image == a] = b
         self.result_image = temp
         lookup_table = dict(zip([str(i) for i in t], relabels))
+        print(t)
+        print(lookup_table)
         # reconstruct the labelsets
         new_label_sets = {}
         segments = self.__segment_fragment_mapping().keys()
+        print(self.label_sets)
         segment_remapping = dict(zip(segments, range(1, len(segments)+2)))
+        print(segment_remapping)
         for setname, labelset in self.label_sets.items():
             if setname in lookup_table.keys():
                 new_label_sets[str(lookup_table[setname])] = [segment_remapping[x] for x in list(labelset)]
