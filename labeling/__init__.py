@@ -1,2 +1,2 @@
-from labeling.bsoncontainer import BsonContainer
+from labeling.LabelingData import LabelingData
 from labeling.Labeling import Labeling

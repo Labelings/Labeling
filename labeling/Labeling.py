@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tifffile import imread
 
-import labeling.bsoncontainer as bc
+from .LabelingData import LabelingData
 
 
 class LabelSet:
@@ -40,12 +40,12 @@ class Labeling:
     @classmethod
     def from_file(cls, path: str):
         labeling = cls.__new__(cls)
-        container = bc.BsonContainer.decode(path)
+        container = LabelingData.decode(path)
         labeling.result_image = container.get_image()
         labeling.__image_resolution = labeling.result_image.shape
         labeling.label_sets = container.labelSets
         labeling.metadata = container.metadata
-        labeling.__img_filename = os.path.split(path)[1].replace(".labeling.bson", ".tif")
+        labeling.__img_filename = os.path.split(path)[1].replace(".lbl.json", ".tif")
         labeling.__segmentation_source = dict.fromkeys(range(container.numSources), range(container.numSources))
         return labeling
 
@@ -69,7 +69,7 @@ class Labeling:
         labeling.add_image(first_image, source_id)
         return labeling
 
-    def iterate_over_images(self, images: List[np.ndarray], source_ids=None) ->  List[Dict[str, LabelSet]]:
+    def iterate_over_images(self, images: List[np.ndarray], source_ids=None) -> List[Dict[str, LabelSet]]:
         # iterate over all images
         ret = []
         for image, source_id in zip(images, source_ids):
@@ -79,7 +79,8 @@ class Labeling:
     def add_image(self, image: np.ndarray, source_id=None) -> Dict[str, LabelSet]:
         return self.add_segments(image, (0, 0), source_id=source_id)
 
-    def add_segments(self, patch: np.ndarray, position: Tuple, merge: dict = None, source_id=None) -> Dict[str, LabelSet]:
+    def add_segments(self, patch: np.ndarray, position: Tuple, merge: dict = None, source_id=None) -> Dict[
+        str, LabelSet]:
         list_of_unique_labelvalues = set()
         segment_mapping = {}
         __unique_map_id_id_label = {}
@@ -125,39 +126,37 @@ class Labeling:
                 self.__segmentation_source[str(source_id)] = set()
             self.__segmentation_source[str(source_id)].add(__label_value)
 
-    def save_result(self, path: str, cleanup: bool = False, save_json: bool = False):
+    def save_result(self, path: str, cleanup: bool = False):
         if cleanup:
             self.__cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.__image_resolution))
         path, filename = os.path.split(path)
         img.save(os.path.join(path, filename + '.tif'), 'tiff')
         self.__img_filename = filename + '.tif'
-        bson_con = bc.BsonContainer.fromValues(2, len(self.label_sets), len(self.__segmentation_source),
-                                               self.__img_filename, {},
-                                               {key:list(value) for (key,value) in self.label_sets.items()}, self.metadata)
-        bson_con.encode_and_save(os.path.join(path, filename + '.labeling.bson'))
-        # optional, just to easily content check
-        if save_json:
-            bson_con.save_as_json(os.path.join(path, filename + '.json'))
-        return np.reshape(self.result_image, self.__image_resolution), bson_con
+        label_data = LabelingData.fromValues(2, len(self.label_sets), len(self.__segmentation_source),
+                                             self.__img_filename, {},
+                                             {key: list(value) for (key, value) in
+                                              self.label_sets.items()}, self.metadata)
+        label_data.save_as_json(os.path.join(path, filename + '.lbl.json'))
+        return np.reshape(self.result_image, self.__image_resolution), label_data
 
-    def get_result(self, cleanup: bool = False) -> (np.array, bc.BsonContainer):
+    def get_result(self, cleanup: bool = False) -> (np.array, LabelingData):
         if cleanup:
             self.__cleanup_labelsets()
         return np.reshape(self.result_image, self.__image_resolution), \
-               bc.BsonContainer.fromValues(2,
-                                           len(self.label_sets),
-                                           len(self.__segmentation_source),
-                                           self.__img_filename, {},
-                                           {key:list(value) for (key,value) in self.label_sets.items()},
-                                           self.metadata)
+               LabelingData.fromValues(2,
+                                       len(self.label_sets),
+                                       len(self.__segmentation_source),
+                                       self.__img_filename, {},
+                                       {key: list(value) for (key, value) in self.label_sets.items()},
+                                       self.metadata)
 
     def __cleanup_labelsets(self) -> None:
         # cleanup labelSets
         _, idx = np.unique(self.result_image, return_index=True)
         t = list(self.result_image[np.sort(idx)])
         if 0 not in t:
-            t.insert(0,0)
+            t.insert(0, 0)
         relabels = range(len(t) + 1)
 
         temp = np.zeros(self.result_image.shape, np.int8)
@@ -165,14 +164,10 @@ class Labeling:
             temp[self.result_image == a] = b
         self.result_image = temp
         lookup_table = dict(zip([str(i) for i in t], relabels))
-        print(t)
-        print(lookup_table)
         # reconstruct the labelsets
         new_label_sets = {}
         segments = self.__segment_fragment_mapping().keys()
-        print(self.label_sets)
-        segment_remapping = dict(zip(segments, range(1, len(segments)+2)))
-        print(segment_remapping)
+        segment_remapping = dict(zip(segments, range(1, len(segments) + 2)))
         for setname, labelset in self.label_sets.items():
             if setname in lookup_table.keys():
                 new_label_sets[str(lookup_table[setname])] = [segment_remapping[x] for x in list(labelset)]
