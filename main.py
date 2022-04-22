@@ -3,7 +3,7 @@ import numpy as np
 from scipy.ndimage import rotate
 from tifffile import imread
 
-from labeling import Labeling as lb
+from labeling.Labeling import Labeling
 #from line_profiler import LineProfiler
 
 result = np.zeros((512, 512))
@@ -43,7 +43,7 @@ def test1():
 
     print(np.argwhere( example2_images[0]))
 
-    merger = lb.Labeling.fromValues(np.zeros((512, 512), np.int32))
+    merger = Labeling.fromValues(np.zeros((512, 512), np.int32))
     merger.iterate_over_images(example2_images, [str(int) for int in list(range(1, len(example2_images) + 1))])
     meta = {
         "date": "2021-06-28",
@@ -74,8 +74,8 @@ def test4():
     e[1:3, 1:3] = 1
     example1_images.append(e)
     # Initialize the merger with the first image. This can also be an empty image of zeros in the correct shape
-    merger = lb.Labeling.fromValues(first_image=np.zeros((4,4), dtype="int32"))
-    merger2 = lb.Labeling.fromValues(first_image=np.zeros((4, 4), dtype="int32"))
+    merger = Labeling.fromValues(first_image=np.zeros((4,4), dtype="int32"))
+    merger2 = Labeling.fromValues(first_image=np.zeros((4, 4), dtype="int32"))
     result = merger2.add_segments(example1_images[0], (0, 0), source_id=str(0))
     result = merger2.add_segments(example1_images[1], (0, 0), source_id=str(1))
     result = merger2.add_segments(example1_images[2], (0, 0), source_id=str(2))
@@ -98,7 +98,7 @@ def test3():
 
     start = datetime.now()
     # initialize the merger
-    merger = lb.Labeling(images[0].shape, np.int32)
+    merger = Labeling(images[0].shape, np.int32)
     # iterate over all images
     i = 0
     for image in images:
@@ -133,6 +133,6 @@ if __name__ == '__main__':
 
     test1()
     #profiler.runcall(test3)
-    #test4()
+    test4()
     #profiler.print_stats()
     #profiler.dump_stats("profiling.lprof")

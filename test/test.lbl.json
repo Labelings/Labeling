@@ -1,0 +1,1 @@
+{"version": 2, "numSets": 4, "numSources": 2, "indexImg": "test.tif", "labelMapping": {}, "labelSets": {"0": [], "1": [1], "2": [1, 2], "3": [2]}, "metadata": {}}

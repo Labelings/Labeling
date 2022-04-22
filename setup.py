@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="labeling",
-    version="0.1.8",
+    version="0.1.9",
     author="Tom Burke",
     author_email="burke@mpi-cbg.de",
     description="A package to create labeling/segmentation information based on pixel values.",
@@ -26,7 +26,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
     install_requires=[
-        "pymongo==3.11.0",
         "tifffile==2021.4.8",
         "pillow==9.0.1",
         "numpy==1.21"

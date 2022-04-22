@@ -87,7 +87,7 @@ class LabelingTests4(unittest.TestCase):
 class LabelingReadTest(unittest.TestCase):
 
     def runTest(self):
-        labeling = lb.from_file("example2.bson")
+        labeling = lb.from_file("test.lbl.json")
         self.assertIsNotNone(labeling.get_result()[0])
         self.assertIsNotNone(labeling.get_result()[1])
 
@@ -133,6 +133,7 @@ class LabelingAddRemoveTest(unittest.TestCase):
         print(img2)
         self.assertTrue(np.all(np.equal(img, img2)))
         self.assertEqual(labeling, labeling2)
+        merger2.save_result("test", True, True)
 
 
 
