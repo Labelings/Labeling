@@ -152,9 +152,12 @@ class Labeling:
                                        self.metadata)
 
     def __cleanup_labelsets(self) -> None:
-        # cleanup labelSets
-        _, idx = np.unique(self.result_image, return_index=True)
-        t = list(self.result_image[np.sort(idx)])
+        values, indices = np.unique(self.result_image, return_index=True)
+        # We want list of unique values sorted by their appearance in result_image.
+        # We can do this by zipping index and value, then passing to sorted.
+        # sorted() on a tuple sorts element-by-element, meaning the index will
+        # be the deciding factor in the sort.
+        t = [value for index, value in sorted(zip(indices, values))]
         if 0 not in t:
             t.insert(0, 0)
         relabels = range(len(t) + 1)
