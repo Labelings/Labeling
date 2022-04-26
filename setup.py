@@ -24,10 +24,11 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     packages=setuptools.find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=[
         "tifffile==2021.4.8",
         "pillow==9.0.1",
-        "numpy==1.21"
+        "numpy==1.21",
+        "pytest==7.1.2"
     ],
 )
