@@ -2,9 +2,6 @@
 requires = [
     "setuptools>=42",
     "wheel",
-    "tifffile==2021.4.8",
-    "pillow==9.0.1",
-    "numpy==1.21"
 ]
 build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]

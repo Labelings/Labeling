@@ -29,6 +29,9 @@ setuptools.setup(
         "tifffile==2021.4.8",
         "pillow==9.0.1",
         "numpy==1.21",
-        "pytest==7.1.2"
+        "scipy==1.8.0"
     ],
+    extras_require={
+        "dev": ["pytest==7.1.2"]
+    }
 )
