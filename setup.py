@@ -24,14 +24,17 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     packages=setuptools.find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.6",
     install_requires=[
-        "tifffile==2021.4.8",
-        "pillow==9.0.1",
-        "numpy==1.21",
-        "scipy==1.8.0"
+        "tifffile",
+        "pillow<10",
+        "numpy<2",
+        "scipy<2"
     ],
     extras_require={
-        "dev": ["pytest==7.1.2"]
+        "dev": [
+            "pytest",
+            "flake8"
+        ]
     }
 )
