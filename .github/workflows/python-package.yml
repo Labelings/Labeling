@@ -11,12 +11,25 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: test ${{matrix.os}} - ${{matrix.python-version}}
+    runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        os: [
+          ubuntu-latest,
+          windows-latest,
+          macos-latest
+        ]
+        # We omit 3.7 and 3.9 for expedience.
+        # Generally speaking, we'd only care to test the oldest
+        # and newest supported versions. We also check one in the
+        # middle just for fun :)
+        python-version: [
+          "3.6",
+          "3.8",
+          "3.10"
+        ]
 
     steps:
     - uses: actions/checkout@v3
@@ -27,8 +40,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install -e '.[dev]'
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
