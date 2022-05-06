@@ -162,7 +162,7 @@ class Labeling:
             t.insert(0, 0)
         relabels = range(len(t) + 1)
 
-        temp = np.zeros(self.result_image.shape, np.int8)
+        temp = np.zeros(self.result_image.shape, self.result_image.dtype)
         for a, b in zip(t, relabels):
             temp[self.result_image == a] = b
         self.result_image = temp
@@ -173,7 +173,7 @@ class Labeling:
         segment_remapping = dict(zip(segments, range(1, len(segments) + 2)))
         for setname, labelset in self.label_sets.items():
             if setname in lookup_table.keys():
-                new_label_sets[str(lookup_table[setname])] = [segment_remapping[x] for x in list(labelset)]
+                new_label_sets[str(lookup_table[setname])] = set([segment_remapping[x] for x in list(labelset)])
         for key, value in self.__segmentation_source.items():
             self.__segmentation_source[key] = list(value)
         self.label_sets = new_label_sets
