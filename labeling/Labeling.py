@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import List, Callable, Tuple, T, Dict
+from typing import List, Callable, Tuple, T, Dict, Any
 
 import numpy as np
 from PIL import Image
@@ -49,13 +49,6 @@ class Labeling:
         labeling.__segmentation_source = dict.fromkeys(range(container.numSources), range(container.numSources))
         return labeling
 
-    # @classmethod
-    # def from_file_withfunc(cls, path: str, func: Callable[[int], T]):
-    #     cls.labels = bc.BsonContainer.decode_withfunc(path, func)
-    #     cls.result_image = cls.labels.get_image()
-    #     cls.img = cls.labels.get_image()
-    #     return cls
-
     @staticmethod
     def read_images(file_paths: list) -> np.ndarray:
         return imread(file_paths)
@@ -70,6 +63,13 @@ class Labeling:
         return labeling
 
     def iterate_over_images(self, images: List[np.ndarray], source_ids=None) -> List[Dict[str, LabelSet]]:
+        """
+        Convenience function to add multiple original segmentations to an image.
+        Segmentations need to be of the same size.
+        :param images:
+        :param source_ids:
+        :return:
+        """
         # iterate over all images
         ret = []
         for image, source_id in zip(images, source_ids):
@@ -77,10 +77,31 @@ class Labeling:
         return ret
 
     def add_image(self, image: np.ndarray, source_id=None) -> Dict[str, LabelSet]:
+        """
+        Add a single segmentation image to the Labeling.
+        :param image:
+        :param source_id:
+        :return:
+        """
         return self.add_segments(image, (0, 0), source_id=source_id)
 
     def add_segments(self, patch: np.ndarray, position: Tuple, merge: dict = None, source_id=None) -> Dict[
         str, LabelSet]:
+        """
+        The main function of the library.
+        Integrates a patch at the specified position.
+        It iterates over each pixel of the patch and updates
+        the Labeling accordingly, adding a new segment and creating fragments
+        on demand.
+        :param patch: a nD labeling patch. a patch can also be a full image in this case
+        :param position: the nD position the patch is being inserted in. the
+        position is "upperleft corner" i.e. it corresponds to (0,0) in the patch
+        :param merge: unused. meant to hold additional information that refer to each
+        patch pixels value
+        :param source_id: a reference value for all segments that are added for future
+        tracking
+        :return: the mapping of fragment id to segment id
+        """
         list_of_unique_labelvalues = set()
         segment_mapping = {}
         __unique_map_id_id_label = {}
@@ -118,15 +139,34 @@ class Labeling:
         return segment_mapping
 
     def add_metadata(self, data) -> None:
+        """
+        Optional
+        Add any additional metadata to the Labeling that might be necessary.
+        :param data:
+        :return: None
+        """
         self.metadata = data
 
-    def add_segmentation_source(self, source_id, __label_value) -> None:
+    def add_segmentation_source(self, source_id: str, label_value: Any) -> None:
+        """
+        Optional
+        Adds a mapping of user-defined source_id to a value(should be either segment or fragment id)
+        :param source_id:
+        :param label_value:
+        :return: None
+        """
         if source_id is not None:
             if str(source_id) not in self.__segmentation_source.keys():
                 self.__segmentation_source[str(source_id)] = set()
-            self.__segmentation_source[str(source_id)].add(__label_value)
+            self.__segmentation_source[str(source_id)].add(label_value)
 
     def save_result(self, path: str, cleanup: bool = False):
+        """
+
+        :param path: the path to save the Labeling to
+        :param cleanup: if the metadata should be cleaned up of all no longer valid data
+        :return: the merged image, a LabelingData object
+        """
         if cleanup:
             self.__cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.__image_resolution))
@@ -141,6 +181,12 @@ class Labeling:
         return np.reshape(self.result_image, self.__image_resolution), label_data
 
     def get_result(self, cleanup: bool = False) -> (np.array, LabelingData):
+        """
+        This returns the current state of the Labeling image.
+        and it's corresponding metadata.
+        :param cleanup:
+        :return: the merged image, a LabelingData object
+        """
         if cleanup:
             self.__cleanup_labelsets()
         return np.reshape(self.result_image, self.__image_resolution), \
@@ -152,6 +198,12 @@ class Labeling:
                                        self.metadata)
 
     def __cleanup_labelsets(self) -> None:
+        """
+        Removes all fragments that are in the dict but no longer in
+        the containing image. It also removes all segments
+        that have no associated fragments from the list.
+        :return:
+        """
         values, indices = np.unique(self.result_image, return_index=True)
         # We want list of unique values sorted by their appearance in result_image.
         # We can do this by zipping index and value, then passing to sorted.
@@ -179,6 +231,11 @@ class Labeling:
         self.label_sets = new_label_sets
 
     def __segment_fragment_mapping(self) -> dict:
+        """
+        Returns the current representation of a segment-fragments mapping.
+        This is not a copy of the values.
+        :return: a dict[int,set(int)]
+        """
         segment_to_fragment = {}
         for key, value in self.label_sets.items():
             for v in value:
@@ -188,6 +245,12 @@ class Labeling:
         return segment_to_fragment
 
     def remove_segment(self, segment_number: int) -> None:
+        """
+        Removes a single segment from the Labeling object,
+        rearranging all involved fragments.
+        :param segment_number: the segment to remove from the Labeling.
+        :return:
+        """
         segment_to_fragment = self.__segment_fragment_mapping()
         fragments = segment_to_fragment.pop(segment_number)
         transformation_list = []
