@@ -24,12 +24,12 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ],
     packages=setuptools.find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         "tifffile",
-        "pillow<10",
-        "numpy<2",
-        "scipy<2"
+        "pillow",
+        "numpy",
+        "scipy"
     ],
     extras_require={
         "dev": [
