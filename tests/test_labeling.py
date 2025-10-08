@@ -32,15 +32,15 @@ def test_add_multiple_images_diff_values():
 
 
 def test_load_from_file():
-    labeling = lb.from_file("./test/test.lbl.json")
+    labeling = lb.from_file("./tests/test.lbl.json")
     assert labeling.get_result()[0] is not None
     assert labeling.get_result()[1] is not None
 
 def test_save_to_file():
-    labeling = lb.from_file("./test/test.lbl.json")
+    labeling = lb.from_file("./tests/test.lbl.json")
     assert labeling.get_result()[0] is not None
     assert labeling.get_result()[1] is not None
-    labeling.save_result("./test/test", True)
+    labeling.save_result("./tests/test", True)
 
 
 def test_add_delete():
