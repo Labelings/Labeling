@@ -31,8 +31,10 @@ dependencies = [
     "tifffile",
     "pillow",
     "numpy",
-    "scipy",
 ]
+
+[project.optional-dependencies]
+examples = ["scipy"]
 
 [dependency-groups]
 dev = [
