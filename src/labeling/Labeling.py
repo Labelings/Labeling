@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import List, Callable, Tuple, T, Dict, Any
+from typing import List, Tuple, Dict, Any
 
 import numpy as np
 from PIL import Image
@@ -24,7 +24,6 @@ class LabelSet:
 
 
 class Labeling:
-
     def __init__(self, shape: (int, int) = (512, 512), type: object = np.int8):
         self.result_image = np.zeros(shape, type)
         self.__image_resolution = shape
@@ -46,7 +45,9 @@ class Labeling:
         labeling.label_sets = container.labelSets
         labeling.metadata = container.metadata
         labeling.__img_filename = os.path.split(path)[1].replace(".lbl.json", ".tif")
-        labeling.__segmentation_source = dict.fromkeys(range(container.numSources), range(container.numSources))
+        labeling.__segmentation_source = dict.fromkeys(
+            range(container.numSources), range(container.numSources)
+        )
         return labeling
 
     @staticmethod
@@ -54,7 +55,9 @@ class Labeling:
         return imread(file_paths)
 
     @classmethod
-    def fromValues(cls, first_image: np.ndarray = np.zeros((512, 512), np.int8), source_id=None):
+    def fromValues(
+        cls, first_image: np.ndarray = np.zeros((512, 512), np.int8), source_id=None
+    ):
         labeling = Labeling()
         labeling.__list_of_unique_ids = np.unique(first_image)
         labeling.__image_resolution = first_image.shape
@@ -62,7 +65,9 @@ class Labeling:
         labeling.add_image(first_image, source_id)
         return labeling
 
-    def iterate_over_images(self, images: List[np.ndarray], source_ids=None) -> List[Dict[str, LabelSet]]:
+    def iterate_over_images(
+        self, images: List[np.ndarray], source_ids=None
+    ) -> List[Dict[str, LabelSet]]:
         """
         Convenience function to add multiple original segmentations to an image.
         Segmentations need to be of the same size.
@@ -85,8 +90,9 @@ class Labeling:
         """
         return self.add_segments(image, (0, 0), source_id=source_id)
 
-    def add_segments(self, patch: np.ndarray, position: Tuple, merge: dict = None, source_id=None) -> Dict[
-        str, LabelSet]:
+    def add_segments(
+        self, patch: np.ndarray, position: Tuple, merge: dict = None, source_id=None
+    ) -> Dict[str, LabelSet]:
         """
         The main function of the library.
         Integrates a patch at the specified position.
@@ -112,16 +118,22 @@ class Labeling:
                     v = val.item()
                     pos = tuple(sum(x) for x in zip(it.multi_index, position))
                     if (temp[pos], v) not in __unique_map_id_id_label:
-
                         if v not in list_of_unique_labelvalues:
                             self.__label_value += 1
                             list_of_unique_labelvalues.add(v)
-                        __unique_map_id_id_label[(temp[pos], v)] = (self.__pixel_value, self.__label_value)
+                        __unique_map_id_id_label[(temp[pos], v)] = (
+                            self.__pixel_value,
+                            self.__label_value,
+                        )
                         if temp[pos] == 0:
                             self.label_sets[str(self.__pixel_value)] = set()
-                            self.label_sets[str(self.__pixel_value)].add(self.__label_value)
+                            self.label_sets[str(self.__pixel_value)].add(
+                                self.__label_value
+                            )
                             self.add_segmentation_source(source_id, self.__label_value)
-                            segment_mapping[str(self.__pixel_value)] = LabelSet(source_id, self.__label_value)
+                            segment_mapping[str(self.__pixel_value)] = LabelSet(
+                                source_id, self.__label_value
+                            )
                         else:
                             labelset = copy.deepcopy(self.label_sets[str(temp[pos])])
                             labelset.add(self.__label_value)
@@ -171,13 +183,18 @@ class Labeling:
             self.__cleanup_labelsets()
         img = Image.fromarray(np.reshape(self.result_image, self.__image_resolution))
         path, filename = os.path.split(path)
-        img.save(os.path.join(path, filename + '.tif'), 'tiff')
-        self.__img_filename = filename + '.tif'
-        label_data = LabelingData.fromValues(2, len(self.label_sets), len(self.__segmentation_source),
-                                             self.__img_filename, {},
-                                             {key: list(value) for (key, value) in
-                                              self.label_sets.items()}, self.metadata)
-        label_data.save_as_json(os.path.join(path, filename + '.lbl.json'))
+        img.save(os.path.join(path, filename + ".tif"), "tiff")
+        self.__img_filename = filename + ".tif"
+        label_data = LabelingData.fromValues(
+            2,
+            len(self.label_sets),
+            len(self.__segmentation_source),
+            self.__img_filename,
+            {},
+            {key: list(value) for (key, value) in self.label_sets.items()},
+            self.metadata,
+        )
+        label_data.save_as_json(os.path.join(path, filename + ".lbl.json"))
         return np.reshape(self.result_image, self.__image_resolution), label_data
 
     def get_result(self, cleanup: bool = False) -> (np.array, LabelingData):
@@ -189,13 +206,17 @@ class Labeling:
         """
         if cleanup:
             self.__cleanup_labelsets()
-        return np.reshape(self.result_image, self.__image_resolution), \
-               LabelingData.fromValues(2,
-                                       len(self.label_sets),
-                                       len(self.__segmentation_source),
-                                       self.__img_filename, {},
-                                       {key: list(value) for (key, value) in self.label_sets.items()},
-                                       self.metadata)
+        return np.reshape(
+            self.result_image, self.__image_resolution
+        ), LabelingData.fromValues(
+            2,
+            len(self.label_sets),
+            len(self.__segmentation_source),
+            self.__img_filename,
+            {},
+            {key: list(value) for (key, value) in self.label_sets.items()},
+            self.metadata,
+        )
 
     def __cleanup_labelsets(self) -> None:
         """
@@ -225,7 +246,9 @@ class Labeling:
         segment_remapping = dict(zip(segments, range(1, len(segments) + 2)))
         for setname, labelset in self.label_sets.items():
             if setname in lookup_table.keys():
-                new_label_sets[str(lookup_table[setname])] = set([segment_remapping[x] for x in list(labelset)])
+                new_label_sets[str(lookup_table[setname])] = set(
+                    [segment_remapping[x] for x in list(labelset)]
+                )
         for key, value in self.__segmentation_source.items():
             self.__segmentation_source[key] = list(value)
         self.label_sets = new_label_sets
@@ -260,12 +283,18 @@ class Labeling:
             for fragment_id, segment_list in self.label_sets.items():
                 if set(self.label_sets[str(fragment)]) == set(segment_list):
                     # not (A,B),(B,A) already in list and not (A,A)
-                    if not any(elem in transformation_list for elem in
-                               [(int(fragment_id), fragment), (fragment, int(fragment_id))]) and fragment != int(
-                        fragment_id):
+                    if not any(
+                        elem in transformation_list
+                        for elem in [
+                            (int(fragment_id), fragment),
+                            (fragment, int(fragment_id)),
+                        ]
+                    ) and fragment != int(fragment_id):
                         transformation_list.append((fragment, int(fragment_id)))
         for transformer in transformation_list:
-            np.place(self.result_image, self.result_image == transformer[0], transformer[1])
+            np.place(
+                self.result_image, self.result_image == transformer[0], transformer[1]
+            )
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

@@ -40,7 +40,6 @@ examples = ["scipy"]
 dev = [
     "pytest",
     "pytest-cov",
-    "flake8",
     "ruff",
     "build",
     "validate-pyproject[all]",
