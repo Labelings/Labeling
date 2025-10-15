@@ -68,7 +68,7 @@ testpaths = ["tests"]
 line-length = 88
 src = ["src", "tests"]
 include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py"]
-extend-exclude = ["bin", "build", "dist"]
+extend-exclude = ["bin", "build", "dist", "src/labeling/_version.py"]
 
 [tool.ruff.lint]
 extend-ignore = ["E203"]
