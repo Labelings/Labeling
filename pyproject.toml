@@ -79,3 +79,9 @@ extend-ignore = ["E203"]
 
 [tool.setuptools_scm]
 write_to = "src/labeling/_version.py"
+
+[tool.uv]
+cache-keys = [
+    { git = { commit = true } },
+    { file = "pyproject.toml" }
+]
