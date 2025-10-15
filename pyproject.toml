@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77.0.0"]
+requires = ["setuptools>=77.0.0", "setuptools_scm>=7.1.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "labeling"
-version = "0.1.14"
+dynamic = ["version"]
 description = "A package to create labeling/segmentation information based on pixel values."
 license = "BSD-3-Clause"
 authors = [{name = "Tom Burke"}]
@@ -76,3 +76,6 @@ extend-ignore = ["E203"]
 [tool.ruff.lint.per-file-ignores]
 # Ignore `E402` (import violations) in all `__init__.py` files
 "__init__.py" = ["E402", "F401"]
+
+[tool.setuptools_scm]
+write_to = "src/labeling/_version.py"
