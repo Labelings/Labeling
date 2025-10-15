@@ -6,7 +6,6 @@ from tifffile import imread
 
 
 class LabelingData(dict):
-
     def __init__(self):
         self.version = 2
         self.numSets = 0
@@ -17,9 +16,16 @@ class LabelingData(dict):
         self.metadata = None
 
     @classmethod
-    def fromValues(cls, version: int = 2, num_sets: int = 0, num_sources: int = 0, index_img: str = "",
-                   label_mapping: dict = None,
-                   label_sets: dict = {}, metadata: dict() = None):
+    def fromValues(
+        cls,
+        version: int = 2,
+        num_sets: int = 0,
+        num_sources: int = 0,
+        index_img: str = "",
+        label_mapping: dict = None,
+        label_sets: dict = {},
+        metadata: dict() = None,
+    ):
         obj = LabelingData()
         obj.numSets = num_sets
         obj.numSources = num_sources
@@ -55,43 +61,73 @@ class LabelingData(dict):
         self.save_as_json(path)
 
     def save_as_json(self, path: str):
-        with open(path, 'w') as outfile:
+        with open(path, "w") as outfile:
             json.dump(vars(self), outfile)
 
     @staticmethod
     def decode(path: str):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
-            data["indexImg"] = os.path.join(os.path.dirname(os.path.realpath(f.name)), data["indexImg"])
+            data["indexImg"] = os.path.join(
+                os.path.dirname(os.path.realpath(f.name)), data["indexImg"]
+            )
             if "metadata" not in data.keys():
-                return LabelingData.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
-                                                data["labelMapping"],
-                                                data["labelSets"])
-            return LabelingData.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
-                                            data["labelMapping"], data["labelSets"], data["metadata"])
+                return LabelingData.fromValues(
+                    data["version"],
+                    data["numSets"],
+                    data["numSources"],
+                    data["indexImg"],
+                    data["labelMapping"],
+                    data["labelSets"],
+                )
+            return LabelingData.fromValues(
+                data["version"],
+                data["numSets"],
+                data["numSources"],
+                data["indexImg"],
+                data["labelMapping"],
+                data["labelSets"],
+                data["metadata"],
+            )
 
     @staticmethod
     def decode_withfunc(path, func: Callable[[int], T]):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
             transformed_labelsets = {}
-            for key, labelset in data['labelSets'].items():
+            for key, labelset in data["labelSets"].items():
                 transformed_labelsets[key] = set()
                 for label in labelset:
                     transformed_labelsets[key].add(func(label))
 
             if "metadata" not in data.keys():
-                return LabelingData.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
-                                                data["labelMapping"], data["labelSets"])
-            return LabelingData.fromValues(data["version"], data["numSets"], data["numSources"], data["indexImg"],
-                                            data["labelMapping"], data["labelSets"], data["metadata"])
+                return LabelingData.fromValues(
+                    data["version"],
+                    data["numSets"],
+                    data["numSources"],
+                    data["indexImg"],
+                    data["labelMapping"],
+                    data["labelSets"],
+                )
+            return LabelingData.fromValues(
+                data["version"],
+                data["numSets"],
+                data["numSources"],
+                data["indexImg"],
+                data["labelMapping"],
+                data["labelSets"],
+                data["metadata"],
+            )
 
     def get_image(self):
         return imread(self.indexImg)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.labelSets == other.labelSets and self.numSets == other.numSets and \
-                   self.labelMapping == other.labelMapping
+            return (
+                self.labelSets == other.labelSets
+                and self.numSets == other.numSets
+                and self.labelMapping == other.labelMapping
+            )
         else:
             return False
