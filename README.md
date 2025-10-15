@@ -1,5 +1,11 @@
 # Labeling in Python
 
+
+[![License](https://img.shields.io/pypi/l/labeling.svg?color=green)](https://github.com/Labelings/labeling/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/labeling.svg?color=green)](https://pypi.org/project/Labeling)
+[![CI](https://github.com/Labelings/labeling/actions/workflows/build.yml/badge.svg)](https://github.com/Labelings/labeling/actions/workflows/build.yml)
+
+
 This package is intended to provide an easy way to store Labelings for image segmentation.
 The segmentation information is stored in a BSON file for fast I/O on demand, but can also be exported to JSON for human readability.
 
@@ -15,4 +21,5 @@ The segmentation information is stored in a BSON file for fast I/O on demand, bu
    Both methods return an image and a bson container.
 
 ### Information
+
 The project is open-source. If you find problems or have ideas for improvement, please create an issue on GitHub, or contribute yourself!
